@@ -33,49 +33,163 @@ function ghsSection() {
 function nfpaSection() {
     const quads = ['blue', 'red', 'yellow', 'white'];
     const labels = ['Azul - Salud', 'Rojo - Inflamabilidad', 'Amarillo - Reactividad', 'Blanco - Especial'];
-    const bgColors = { blue: '#3b82f6', red: '#ef4444', yellow: '#eab308', white: '#f1f5f9' };
-    const textColors = { blue: 'white', red: 'white', yellow: '#1e293b', white: '#1e293b' };
+    const bgColors = {
+        blue: '#3b82f6',
+        red: '#ef4444',
+        yellow: '#eab308',
+        white: '#ffffff'
+    };
+    const textColors = {
+        blue: '#ffffff',
+        red: '#ffffff',
+        yellow: '#1e293b',
+        white: '#1e293b'
+    };
 
-    return `<div id="consulta-nfpa">
-        <p class="text-slate-600 mb-6">El diamante NFPA 704 es un sistema de identificacion de peligros. Selecciona un nivel en cada cuadrante para ver su significado.</p>
+    const positions = [
+        'top:0;left:0;',
+        'top:0;right:0;',
+        'bottom:0;left:0;',
+        'bottom:0;right:0;'
+    ];
+
+    return `
+    <div id="consulta-nfpa">
+        <p class="text-slate-600 mb-6">
+            El diamante NFPA 704 es un sistema de identificación de peligros.
+            Selecciona un nivel en cada cuadrante para ver su significado.
+        </p>
+
         <div class="grid lg:grid-cols-2 gap-8">
+
+            <!-- Diamante -->
             <div class="flex justify-center items-center">
-                <div class="relative" style="width:300px;height:300px;">
-                    ${quads.map((q, qi) => {
-                        const data = NFPA_DATA[qi];
-                        return `
-                        <div class="absolute flex flex-col items-center justify-center cursor-pointer transition-all hover:scale-105"
-                             style="width:150px;height:150px;${qi === 0 ? 'top:0;left:0;' : qi === 1 ? 'top:0;right:0;' : qi === 2 ? 'bottom:0;left:0;' : 'bottom:0;right:0;'}
-                             background:${bgColors[q]};color:${textColors[q]};clip-path:polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);"
-                             onclick="showNfpaLevel('${q}', 0)">
-                            <span class="text-4xl font-black" style="margin-top:8px;" id="nfpa-val-${q}">0</span>
-                            <span class="text-[10px] font-semibold uppercase tracking-wider">${labels[qi].split(' - ')[0]}</span>
-                        </div>`;
-                    }).join('')}
+
+                <div
+                    class="relative overflow-hidden border-4 border-slate-800 shadow-lg"
+                    style="
+                        width:260px;
+                        height:260px;
+                        transform:rotate(45deg);
+                        background:white;
+                    "
+                >
+
+                    <!-- División vertical -->
+                    <div
+                        style="
+                            position:absolute;
+                            left:50%;
+                            top:0;
+                            width:4px;
+                            height:100%;
+                            background:#1e293b;
+                            transform:translateX(-50%);
+                        ">
+                    </div>
+
+                    <!-- División horizontal -->
+                    <div
+                        style="
+                            position:absolute;
+                            top:50%;
+                            left:0;
+                            width:100%;
+                            height:4px;
+                            background:#1e293b;
+                            transform:translateY(-50%);
+                        ">
+                    </div>
+
+                    ${quads.map((q, qi) => `
+                        <div
+                            onclick="showNfpaLevel('${q}',0)"
+                            class="absolute flex items-center justify-center cursor-pointer transition-all hover:brightness-110"
+                            style="
+                                ${positions[qi]}
+                                width:50%;
+                                height:50%;
+                                background:${bgColors[q]};
+                                color:${textColors[q]};
+                            "
+                        >
+                            <span
+                                id="nfpa-val-${q}"
+                                style="
+                                    transform:rotate(-45deg);
+                                    font-size:2.6rem;
+                                    font-weight:900;
+                                    user-select:none;
+                                "
+                            >
+                                0
+                            </span>
+                        </div>
+                    `).join('')}
+
                 </div>
+
             </div>
+
+            <!-- Panel derecho -->
             <div class="space-y-5">
+
                 ${NFPA_DATA.map((data, qi) => `
                     <div class="bg-white/60 backdrop-blur-sm rounded-xl border border-slate-100 p-4">
+
                         <div class="flex items-center gap-3 mb-3">
-                            <span class="w-4 h-4 rounded-full inline-block shrink-0" style="background:${bgColors[data.quad]};border:1px solid ${data.quad === 'white' ? '#cbd5e1' : 'transparent'}"></span>
-                            <h3 class="font-bold text-slate-800">${data.color} - ${labels[qi].split(' - ')[1]}</h3>
+
+                            <span
+                                class="w-4 h-4 rounded-full shrink-0"
+                                style="
+                                    background:${bgColors[data.quad]};
+                                    border:1px solid ${data.quad === 'white' ? '#cbd5e1' : 'transparent'};
+                                ">
+                            </span>
+
+                            <h3 class="font-bold text-slate-800">
+                                ${data.color} - ${labels[qi].split(' - ')[1]}
+                            </h3>
+
                         </div>
+
                         <div class="flex flex-wrap gap-2 mb-3">
+
                             ${data.levels.map(l => `
-                                <button class="px-3 py-1.5 text-sm rounded-lg border transition font-medium ${l.level === 0 ? 'bg-brand-500 text-white border-brand-500' : 'bg-white text-slate-600 border-slate-200 hover:border-brand-300'}"
-                                        id="nfpa-btn-${data.quad}-${l.level}"
-                                        onclick="selectNfpaLevel('${data.quad}', ${typeof l.level === 'number' ? l.level : `'${l.level}'`}, this)">
+                                <button
+                                    id="nfpa-btn-${data.quad}-${l.level}"
+                                    class="px-3 py-1.5 text-sm rounded-lg border transition font-medium
+                                    ${l.level === 0
+            ? 'bg-brand-500 text-white border-brand-500'
+            : 'bg-white text-slate-600 border-slate-200 hover:border-brand-300'}"
+
+                                    onclick="selectNfpaLevel(
+                                        '${data.quad}',
+                                        ${typeof l.level === 'number' ? l.level : `'${l.level}'`},
+                                        this
+                                    )"
+                                >
                                     ${l.level}
                                 </button>
                             `).join('')}
+
                         </div>
-                        <p class="text-sm text-slate-600" id="nfpa-desc-${data.quad}">${data.levels[0].desc}</p>
+
+                        <p
+                            class="text-sm text-slate-600"
+                            id="nfpa-desc-${data.quad}"
+                        >
+                            ${data.levels[0].desc}
+                        </p>
+
                     </div>
                 `).join('')}
+
             </div>
+
         </div>
-    </div>`;
+    </div>
+    `;
 }
 
 function labMaterialsSection() {
