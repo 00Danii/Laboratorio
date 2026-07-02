@@ -205,17 +205,29 @@ function safetySignsSection() {
 }
 
 function glossarySection() {
+    const sorted = [...GLOSSARY].sort((a, b) => a.term.localeCompare(b.term));
+    const first = sorted[0];
     return `<div id="consulta-glosario">
-        <p class="text-slate-600 mb-6">Definiciones de terminos y abreviaturas comunes en el laboratorio quimico.</p>
-        <div class="space-y-2">
-            ${GLOSSARY.map(g => `
-                <div class="bg-white/60 backdrop-blur-sm rounded-xl border border-slate-100 p-4 hover:border-brand-200 transition-colors">
-                    <div class="flex items-start gap-4">
-                        <span class="text-sm font-bold text-brand-700 bg-brand-50 px-3 py-1 rounded-lg shrink-0 mt-0.5">${g.term}</span>
-                        <p class="text-sm text-slate-600">${g.desc}</p>
-                    </div>
+        <p class="text-slate-600 mb-6">Selecciona un termino para ver su definicion.</p>
+        <div class="flex flex-col md:flex-row gap-4">
+            <div class="w-full md:w-64 shrink-0">
+                <input type="text" id="glossary-search" placeholder="Buscar termino..." class="w-full mb-3 px-3 py-2 rounded-xl border border-slate-200 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none" oninput="filterGlossary()">
+                <div id="glossary-terms" class="space-y-1 max-h-96 overflow-y-auto pr-1">
+                    ${sorted.map(g => `
+                        <button class="glossary-term w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${g.term === first.term ? 'bg-brand-500 text-white' : 'text-slate-600 hover:bg-slate-100'}"
+                                data-term="${g.term}"
+                                onclick="selectGlossaryTerm('${g.term}')">
+                            ${g.term}
+                        </button>
+                    `).join('')}
                 </div>
-            `).join('')}
+            </div>
+            <div class="flex-1" id="glossary-detail">
+                <div class="bg-white/60 backdrop-blur-sm rounded-xl border border-slate-100 p-6">
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">${first.term}</h3>
+                    <p class="text-sm text-slate-600 leading-relaxed">${first.def}</p>
+                </div>
+            </div>
         </div>
     </div>`;
 }

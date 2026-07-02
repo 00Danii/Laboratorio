@@ -54,6 +54,55 @@ function showNfpaLevel(quad, level) {
 }
 window.showNfpaLevel = showNfpaLevel;
 
+function selectGlossaryTerm(term) {
+    const entry = GLOSSARY.find(g => g.term === term);
+    if (!entry) return;
+    document.querySelectorAll('.glossary-term').forEach(b => {
+        b.classList.remove('bg-brand-500', 'text-white');
+        b.classList.add('text-slate-600', 'hover:bg-slate-100');
+    });
+    const btn = document.querySelector(`.glossary-term[data-term="${term}"]`);
+    if (btn) {
+        btn.classList.remove('text-slate-600', 'hover:bg-slate-100');
+        btn.classList.add('bg-brand-500', 'text-white');
+    }
+    const detail = document.getElementById('glossary-detail');
+    if (detail) {
+        detail.innerHTML = `
+            <div class="bg-white/60 backdrop-blur-sm rounded-xl border border-slate-100 p-6">
+                <h3 class="text-xl font-bold text-slate-800 mb-2">${entry.term}</h3>
+                <p class="text-sm text-slate-600 leading-relaxed">${entry.def}</p>
+            </div>`;
+    }
+}
+window.selectGlossaryTerm = selectGlossaryTerm;
+
+function filterGlossary() {
+    const q = (document.getElementById('glossary-search').value || '').toLowerCase();
+    const termsContainer = document.getElementById('glossary-terms');
+    const sorted = [...GLOSSARY].sort((a, b) => a.term.localeCompare(b.term));
+    const filtered = q ? sorted.filter(g => g.term.toLowerCase().includes(q)) : sorted;
+    termsContainer.innerHTML = filtered.map(g => `
+        <button class="glossary-term w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors text-slate-600 hover:bg-slate-100"
+                data-term="${g.term}"
+                onclick="selectGlossaryTerm('${g.term}')">
+            ${g.term}
+        </button>
+    `).join('');
+    if (filtered.length > 0) {
+        selectGlossaryTerm(filtered[0].term);
+    } else {
+        const detail = document.getElementById('glossary-detail');
+        if (detail) {
+            detail.innerHTML = `
+                <div class="bg-white/60 backdrop-blur-sm rounded-xl border border-slate-100 p-6 text-center text-slate-400">
+                    <p>Ningun termino coincide con la busqueda.</p>
+                </div>`;
+        }
+    }
+}
+window.filterGlossary = filterGlossary;
+
 async function renderConsultaView(container) {
     container.innerHTML = `
         <div class="mt-6">
