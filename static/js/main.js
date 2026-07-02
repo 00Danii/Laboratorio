@@ -65,6 +65,11 @@ function router() {
         titleEl.textContent = "Historial de Auditoría";
         renderHistoryView(mainEl);
     }
+    else if (state.activeRoute === '#/consulta') {
+        setActiveTab('nav-consulta');
+        titleEl.textContent = "Centro de Consulta";
+        renderConsultaView(mainEl);
+    }
     else {
         mainEl.innerHTML = `<div class="p-8 text-center text-red-500 font-bold">Ruta no encontrada.</div>`;
     }
