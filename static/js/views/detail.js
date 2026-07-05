@@ -65,8 +65,8 @@ async function renderItemDetail(container, typePath, itemId) {
                             <div>
                                 <span class="text-slate-400 block text-xs uppercase font-bold tracking-wider">Stock Disponible</span>
                                 <span class="text-xl font-bold text-brand-600">${item.quantity} ${item.unit || 'uds'}</span>
-                                ${typePath === 'substances' ? `
-                                    <div class="text-2xs text-slate-400 font-bold mt-0.5">Envases: ${item.stock_units || 1} uds x ${item.container_content || 'N/D'}</div>
+                                ${typePath === 'substances' && item.container_content ? `
+                                    <div class="text-2xs text-slate-400 font-bold mt-0.5">Contenido por envase: ${item.container_content}</div>
                                 ` : ''}
                             </div>
                             <div><span class="text-slate-400 block text-xs uppercase font-bold tracking-wider">Ubicación Física</span><span class="font-semibold text-slate-700">${item.location || '-'}</span></div>
@@ -133,11 +133,7 @@ async function renderItemDetail(container, typePath, itemId) {
                             `}
 
                             ${typePath === 'substances' ? `
-                            <div class="absolute bottom-2 left-2 right-2 bg-slate-900/60 backdrop-blur-md text-white text-3xs rounded-xl p-2.5 flex justify-between items-center shadow border border-white/10">
-                                <span class="font-bold flex items-center gap-1">
-                                    <i data-lucide="package" class="w-3.5 h-3.5 text-brand-400"></i>
-                                    <span>${item.stock_units || 1} uds</span>
-                                </span>
+                            <div class="absolute bottom-2 left-2 right-2 bg-slate-900/60 backdrop-blur-md text-white text-3xs rounded-xl p-2.5 flex justify-center items-center shadow border border-white/10">
                                 <span class="font-bold flex items-center gap-1">
                                     <i data-lucide="scale" class="w-3.5 h-3.5 text-brand-400"></i>
                                     <span>${item.container_content || item.unit || ''}</span>

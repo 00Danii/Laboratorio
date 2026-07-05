@@ -172,14 +172,6 @@ function buildFormHtml(type, data = {}) {
                         <input type="number" step="any" id="form-quantity" value="${data.quantity || '0'}" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:bg-white focus:border-brand-500 outline-none transition font-semibold">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Unidad de Medida *</label>
-                        <input type="text" id="form-unit" value="${data.unit || 'g'}" required placeholder="Ej. g, ml, frascos" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:bg-white focus:border-brand-500 outline-none transition font-semibold">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Stock Unidades (Envases)</label>
-                        <input type="number" id="form-stock-units" value="${data.stock_units || '1'}" min="1" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:bg-white focus:border-brand-500 outline-none transition font-semibold">
-                    </div>
-                    <div>
                         <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Contenido por Envase (ej. 500 ml)</label>
                         <input type="text" id="form-container-content" value="${data.container_content || ''}" placeholder="Ej. 500 ml, 1 kg" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:bg-white focus:border-brand-500 outline-none transition font-semibold">
                     </div>
@@ -400,17 +392,34 @@ function removeFormPdf() {
 }
 
 function setFormPhoto(path) {
+    const consultaContainer = document.getElementById('consulta-form-photo-container');
+    if (consultaContainer) {
+        consultaContainer.innerHTML = `
+            <div class="relative w-full aspect-video rounded-2xl overflow-hidden border">
+                <img src="${path}" class="w-full h-full object-cover">
+                <input type="hidden" id="consulta-form-image-path" value="${path}">
+                <button type="button" onclick="removeConsultaFormPhoto()" class="absolute top-2 right-2 bg-red-600 text-white rounded-lg p-1.5 hover:bg-red-700 transition">
+                    <i data-lucide="trash" class="w-4 h-4"></i>
+                </button>
+            </div>
+        `;
+        if (window.lucide) window.lucide.createIcons();
+        return;
+    }
+
     const container = document.getElementById('form-photo-container');
-    container.innerHTML = `
-        <div class="relative w-full aspect-square rounded-2xl overflow-hidden border">
-            <img src="${path}" class="w-full h-full object-cover">
-            <input type="hidden" id="form-image-path" value="${path}">
-            <button type="button" onclick="removeFormPhoto()" class="absolute top-2 right-2 bg-red-600 text-white rounded-lg p-1.5 hover:bg-red-700 transition">
-                <i data-lucide="trash" class="w-4 h-4"></i>
-            </button>
-        </div>
-    `;
-    if (window.lucide) window.lucide.createIcons();
+    if (container) {
+        container.innerHTML = `
+            <div class="relative w-full aspect-square rounded-2xl overflow-hidden border">
+                <img src="${path}" class="w-full h-full object-cover">
+                <input type="hidden" id="form-image-path" value="${path}">
+                <button type="button" onclick="removeFormPhoto()" class="absolute top-2 right-2 bg-red-600 text-white rounded-lg p-1.5 hover:bg-red-700 transition">
+                    <i data-lucide="trash" class="w-4 h-4"></i>
+                </button>
+            </div>
+        `;
+        if (window.lucide) window.lucide.createIcons();
+    }
 }
 
 async function handleFormSubmit() {
@@ -438,6 +447,12 @@ async function handleFormSubmit() {
             payload[key] = el.value;
         }
     });
+
+    if (currentModalType === 'substances') {
+        const containerContent = (document.getElementById('form-container-content') ? document.getElementById('form-container-content').value : '') || '';
+        const match = containerContent.trim().match(/[a-zA-ZáéíóúÁÉÍÓÚñÑ°%]+$/);
+        payload.unit = match ? match[0] : 'g';
+    }
 
     const isEdit = currentEditId !== null;
     const apiPath = currentModalType === 'chemical_materials' ? 'chemical-materials' : (currentModalType === 'didactic_materials' ? 'didactic-materials' : 'substances');

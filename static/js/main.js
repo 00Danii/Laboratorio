@@ -70,6 +70,11 @@ function router() {
         titleEl.textContent = "Centro de Consulta";
         renderConsultaView(mainEl);
     }
+    else if (state.activeRoute === '#/backup') {
+        setActiveTab('nav-backup');
+        titleEl.textContent = "Base de Datos";
+        renderBackupView(mainEl);
+    }
     else {
         mainEl.innerHTML = `<div class="p-8 text-center text-red-500 font-bold">Ruta no encontrada.</div>`;
     }

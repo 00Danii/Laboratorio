@@ -172,3 +172,71 @@ def scan_qr():
         "status": "error",
         "message": f"No se encontró ningún reactivo o material con el código QR: {qr_code}"
     }), 404
+
+@tools_bp.route('/api/database/export', methods=['GET'])
+def export_database():
+    from flask import session, send_from_directory
+    from backend.database import DB_PATH
+    if 'user' not in session:
+        return jsonify({"status": "error", "message": "No autorizado. Inicie sesión."}), 401
+    
+    try:
+        return send_from_directory(os.path.dirname(DB_PATH), os.path.basename(DB_PATH), as_attachment=True, download_name='inventario_backup.db')
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@tools_bp.route('/api/database/import', methods=['POST'])
+def import_database():
+    import sqlite3
+    from flask import session
+    from backend.database import DB_PATH
+    if 'user' not in session:
+        return jsonify({"status": "error", "message": "No autorizado. Inicie sesión."}), 401
+    
+    try:
+        if 'database' not in request.files:
+            return jsonify({"status": "error", "message": "No se recibió ningún archivo"}), 400
+        
+        file = request.files['database']
+        if file.filename == '':
+            return jsonify({"status": "error", "message": "Nombre de archivo vacío"}), 400
+        
+        # Guardar en archivo temporal
+        temp_path = DB_PATH + '.temp'
+        file.save(temp_path)
+        
+        # Validar base de datos SQLite y tablas requeridas
+        try:
+            conn = sqlite3.connect(temp_path)
+            cursor = conn.cursor()
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+            tables = [row[0] for row in cursor.fetchall()]
+            conn.close()
+            
+            # Validación simple del esquema
+            if 'substances' not in tables or 'users' not in tables:
+                os.remove(temp_path)
+                return jsonify({"status": "error", "message": "El archivo de base de datos no es válido o no tiene la estructura de LabKeep"}), 400
+                
+        except Exception as db_err:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+            return jsonify({"status": "error", "message": f"Archivo de base de datos corrupto o inválido: {str(db_err)}"}), 400
+        
+        # Respaldar base de datos actual
+        backup_path = DB_PATH + '.bak'
+        if os.path.exists(DB_PATH):
+            if os.path.exists(backup_path):
+                os.remove(backup_path)
+            os.rename(DB_PATH, backup_path)
+            
+        # Reemplazar la base de datos
+        os.rename(temp_path, DB_PATH)
+        
+        # Re-inicializar para aplicar migraciones de ser necesario
+        from backend.database import init_db
+        init_db()
+        
+        return jsonify({"status": "success", "message": "Base de datos importada exitosamente"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500

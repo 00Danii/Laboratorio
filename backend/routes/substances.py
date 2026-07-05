@@ -109,8 +109,15 @@ def create_substance():
 
     if not name:
         return jsonify({"status": "error", "message": "El nombre de la sustancia es obligatorio"}), 400
+        
     if not unit:
-        return jsonify({"status": "error", "message": "La unidad de medida es obligatoria"}), 400
+        container_content = data.get('container_content', '').strip()
+        if container_content:
+            import re
+            match = re.search(r'[a-zA-ZáéíóúÁÉÍÓÚñÑ°%]+$', container_content)
+            unit = match.group(0) if match else "g"
+        else:
+            unit = "g"
 
     try:
         quantity = float(quantity_str)
@@ -210,8 +217,15 @@ def update_substance(item_id):
 
     if not name:
         return jsonify({"status": "error", "message": "El nombre de la sustancia es obligatorio"}), 400
+        
     if not unit:
-        return jsonify({"status": "error", "message": "La unidad de medida es obligatoria"}), 400
+        container_content = data.get('container_content', '').strip()
+        if container_content:
+            import re
+            match = re.search(r'[a-zA-ZáéíóúÁÉÍÓÚñÑ°%]+$', container_content)
+            unit = match.group(0) if match else "g"
+        else:
+            unit = "g"
 
     try:
         quantity = float(quantity_str)

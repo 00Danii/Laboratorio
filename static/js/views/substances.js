@@ -146,7 +146,7 @@ async function renderSubstancesList(container) {
                                                 </td>
                                                 <td class="py-4 px-6 text-xs text-slate-500">
                                                     <div class="text-sm font-bold text-slate-900">${s.quantity} <span class="text-xs font-normal text-slate-500">${s.unit}</span></div>
-                                                    ${s.container_content ? `<div class="text-3xs text-slate-400 font-bold">${s.stock_units || 1} uds x ${s.container_content}</div>` : `<div class="text-3xs text-slate-400 font-bold">${s.stock_units || 1} uds</div>`}
+                                                    ${s.container_content ? `<div class="text-3xs text-slate-400 font-bold">Contenido: ${s.container_content}</div>` : ''}
                                                 </td>
                                                 <td class="py-4 px-6">
                                                     <div class="flex flex-col gap-1 items-start">
@@ -216,11 +216,7 @@ async function renderSubstancesList(container) {
                                         ` : `
                                             <i data-lucide="flask-conical" class="w-12 h-12 text-slate-300"></i>
                                         `}
-                                        <div class="absolute bottom-3 left-3 right-3 bg-slate-900/70 backdrop-blur-md text-white text-3xs rounded-2xl p-2.5 flex justify-between items-center shadow-lg border border-white/10">
-                                            <span class="font-bold flex items-center gap-1">
-                                                <i data-lucide="package" class="w-3.5 h-3.5 text-brand-400"></i>
-                                                <span>${s.stock_units || 1} uds</span>
-                                            </span>
+                                        <div class="absolute bottom-3 left-3 right-3 bg-slate-900/70 backdrop-blur-md text-white text-3xs rounded-2xl p-2.5 flex justify-center items-center shadow-lg border border-white/10">
                                             <span class="font-bold flex items-center gap-1">
                                                 <i data-lucide="scale" class="w-3.5 h-3.5 text-brand-400"></i>
                                                 <span>${s.container_content || s.unit || ''}</span>

@@ -7,6 +7,7 @@ from backend.routes.did_materials import did_materials_bp
 from backend.routes.history import history_bp
 from backend.routes.tools import tools_bp
 from backend.routes.auth import auth_bp
+from backend.routes.consulta import consulta_bp
 
 def create_app():
     # Asegurar que la base de datos esté inicializada
@@ -41,6 +42,7 @@ def create_app():
     app.register_blueprint(history_bp)
     app.register_blueprint(tools_bp)
     app.register_blueprint(auth_bp)
+    app.register_blueprint(consulta_bp)
 
     # Ruta raíz: sirve el archivo index.html del frontend
     @app.route('/')

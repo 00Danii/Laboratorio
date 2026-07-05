@@ -1,13 +1,60 @@
-function ghsSection() {
+function groupNfpaData(flatData) {
+    const quads = [
+        { color: "Azul", quad: "blue", levels: [] },
+        { color: "Rojo", quad: "red", levels: [] },
+        { color: "Amarillo", quad: "yellow", levels: [] },
+        { color: "Blanco", quad: "white", levels: [] }
+    ];
+    flatData.forEach(row => {
+        const q = quads.find(x => x.quad === row.quad);
+        if (q) {
+            const lvl = isNaN(row.level) ? row.level : Number(row.level);
+            q.levels.push({
+                level: lvl,
+                label: row.label,
+                desc: row.desc
+            });
+        }
+    });
+    return quads;
+}
+
+function ghsSection(data = []) {
+    const addBtn = state.isLoggedIn ? `
+        <div class="mb-6 flex justify-end">
+            <button onclick="openConsultaAddModal('ghs')" class="px-4 py-2.5 bg-brand-500 hover:bg-brand-600 text-slate-900 font-bold rounded-xl text-sm transition flex items-center gap-1.5 shadow-sm">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                <span>Agregar Pictograma</span>
+            </button>
+        </div>
+    ` : '';
+
     return `<div id="consulta-ghs">
         <p class="text-slate-600 mb-6">Los pictogramas del Sistema Globalmente Armonizado (GHS) identifican los peligros de las sustancias quimicas. Cada uno representa un tipo de riesgo especifico.</p>
+        ${addBtn}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            ${GHS_PICTOGRAMS.map(p => `
-                <div class="bg-white/70 backdrop-blur-sm rounded-2xl shadow-md border border-slate-100 overflow-hidden hover:shadow-lg transition-shadow">
+            ${data.map(p => {
+                const imgHtml = p.image_path ? 
+                    `<img src="${p.image_path}" alt="${p.title}" class="w-full h-full object-contain">` : 
+                    `<svg class="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>`;
+                
+                const actionsHtml = state.isLoggedIn ? `
+                    <div class="absolute top-2 right-2 flex gap-1 bg-white/80 backdrop-blur-sm p-1 rounded-xl border border-slate-100 z-10">
+                        <button onclick="openConsultaEditModal('ghs', '${p.id}')" class="p-1 text-slate-600 hover:text-brand-600 hover:bg-slate-100 rounded-lg transition" title="Editar">
+                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                        </button>
+                        <button onclick="deleteConsultaItem('ghs', '${p.id}')" class="p-1 text-slate-600 hover:text-red-600 hover:bg-slate-100 rounded-lg transition" title="Eliminar">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                ` : '';
+
+                return `
+                <div class="bg-white/70 backdrop-blur-sm rounded-2xl shadow-md border border-slate-100 overflow-hidden hover:shadow-lg transition-shadow relative">
+                    ${actionsHtml}
                     <div class="flex items-center gap-4 p-5 pb-3 border-b border-slate-100">
                         <div class="w-20 h-20 rounded-2xl bg-slate-100 flex items-center justify-center shrink-0 overflow-hidden">
-                            <img src="" alt="${p.title}" class="w-full h-full object-contain hidden" onerror="this.classList.add('hidden');this.nextElementSibling.classList.remove('hidden')">
-                            <svg class="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            ${imgHtml}
                         </div>
                         <div>
                             <h3 class="text-lg font-bold text-slate-800">${p.title}</h3>
@@ -17,20 +64,22 @@ function ghsSection() {
                     <div class="p-5 space-y-3">
                         <div>
                             <p class="text-xs font-semibold text-brand-600 uppercase tracking-wider mb-1">Ejemplos</p>
-                            <ul class="text-sm text-slate-600 list-disc list-inside">${p.examples.map(e => `<li>${e}</li>`).join('')}</ul>
+                            <ul class="text-sm text-slate-600 list-disc list-inside">${(p.examples || []).map(e => `<li>${e}</li>`).join('')}</ul>
                         </div>
                         <div>
                             <p class="text-xs font-semibold text-orange-600 uppercase tracking-wider mb-1">Recomendaciones</p>
-                            <ul class="text-sm text-slate-600 list-disc list-inside">${p.recommendations.map(r => `<li>${r}</li>`).join('')}</ul>
+                            <ul class="text-sm text-slate-600 list-disc list-inside">${(p.recommendations || []).map(r => `<li>${r}</li>`).join('')}</ul>
                         </div>
                     </div>
                 </div>
-            `).join('')}
+                `;
+            }).join('')}
         </div>
     </div>`;
 }
 
-function nfpaSection() {
+function nfpaSection(flatData = []) {
+    const quadsData = groupNfpaData(flatData);
     const quads = ['blue', 'red', 'yellow', 'white'];
     const labels = ['Azul - Salud', 'Rojo - Inflamabilidad', 'Amarillo - Reactividad', 'Blanco - Especial'];
     const bgColors = {
@@ -53,6 +102,8 @@ function nfpaSection() {
         'bottom:0;right:0;'
     ];
 
+    window.CURRENT_NFPA_DATA = quadsData;
+
     return `
     <div id="consulta-nfpa">
         <p class="text-slate-600 mb-6">
@@ -64,7 +115,6 @@ function nfpaSection() {
 
             <!-- Diamante -->
             <div class="flex justify-center items-center">
-
                 <div
                     class="relative overflow-hidden border-4 border-slate-800 shadow-lg"
                     style="
@@ -74,7 +124,6 @@ function nfpaSection() {
                         background:white;
                     "
                 >
-
                     <!-- División vertical -->
                     <div
                         style="
@@ -103,7 +152,7 @@ function nfpaSection() {
 
                     ${quads.map((q, qi) => `
                         <div
-                            onclick="showNfpaLevel('${q}',0)"
+                            onclick="showNfpaLevel('${q}', '${q === 'white' ? 'W' : '0'}')"
                             class="absolute flex items-center justify-center cursor-pointer transition-all hover:brightness-110"
                             style="
                                 ${positions[qi]}
@@ -120,9 +169,10 @@ function nfpaSection() {
                                     font-size:2.6rem;
                                     font-weight:900;
                                     user-select:none;
+                                    color: ${textColors[q]};
                                 "
                             >
-                                0
+                                ${q === 'white' ? 'W' : '0'}
                             </span>
                         </div>
                     `).join('')}
@@ -134,7 +184,9 @@ function nfpaSection() {
             <!-- Panel derecho -->
             <div class="space-y-5">
 
-                ${NFPA_DATA.map((data, qi) => `
+                ${quadsData.map((data, qi) => {
+                    const firstLvl = data.levels.find(l => String(l.level) === '0' || String(l.level) === 'W') || data.levels[0];
+                    return `
                     <div class="bg-white/60 backdrop-blur-sm rounded-xl border border-slate-100 p-4">
 
                         <div class="flex items-center gap-3 mb-3">
@@ -159,13 +211,13 @@ function nfpaSection() {
                                 <button
                                     id="nfpa-btn-${data.quad}-${l.level}"
                                     class="px-3 py-1.5 text-sm rounded-lg border transition font-medium
-                                    ${l.level === 0
-            ? 'bg-brand-500 text-white border-brand-500'
-            : 'bg-white text-slate-600 border-slate-200 hover:border-brand-300'}"
+                                    ${String(l.level) === '0' || String(l.level) === 'W'
+                                        ? 'bg-brand-500 text-white border-brand-500'
+                                        : 'bg-white text-slate-600 border-slate-200 hover:border-brand-300'}"
 
                                     onclick="selectNfpaLevel(
                                         '${data.quad}',
-                                        ${typeof l.level === 'number' ? l.level : `'${l.level}'`},
+                                        '${l.level}',
                                         this
                                     )"
                                 >
@@ -175,15 +227,22 @@ function nfpaSection() {
 
                         </div>
 
-                        <p
-                            class="text-sm text-slate-600"
-                            id="nfpa-desc-${data.quad}"
-                        >
-                            ${data.levels[0].desc}
-                        </p>
+                        <div class="flex justify-between items-start gap-4">
+                            <p
+                                class="text-sm text-slate-600 flex-1 leading-relaxed"
+                                id="nfpa-desc-${data.quad}"
+                            >
+                                ${firstLvl ? `Nivel ${firstLvl.level}: ${firstLvl.desc}` : ''}
+                            </p>
+                            ${state.isLoggedIn ? `
+                                <button onclick="openNfpaEditBtnClick('${data.quad}')" class="p-1.5 bg-slate-100 hover:bg-brand-100 text-slate-600 hover:text-brand-700 rounded-lg transition shrink-0" title="Editar este nivel">
+                                    <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                                </button>
+                            ` : ''}
+                        </div>
 
                     </div>
-                `).join('')}
+                `}).join('')}
 
             </div>
 
@@ -192,61 +251,133 @@ function nfpaSection() {
     `;
 }
 
-function labMaterialsSection() {
+function openNfpaEditBtnClick(quad) {
+    const valEl = document.getElementById(`nfpa-val-${quad}`);
+    const activeLevel = valEl ? valEl.textContent.trim() : '0';
+    openConsultaEditModal('nfpa', `${quad}:${activeLevel}`);
+}
+window.openNfpaEditBtnClick = openNfpaEditBtnClick;
+
+function labMaterialsSection(data = []) {
+    const addBtn = state.isLoggedIn ? `
+        <div class="mb-6 flex justify-end">
+            <button onclick="openConsultaAddModal('materiales')" class="px-4 py-2.5 bg-brand-500 hover:bg-brand-600 text-slate-900 font-bold rounded-xl text-sm transition flex items-center gap-1.5 shadow-sm">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                <span>Agregar Material</span>
+            </button>
+        </div>
+    ` : '';
+
     return `<div id="consulta-materiales">
         <p class="text-slate-600 mb-6">Instrumentos y equipos basicos de laboratorio, su uso y limitaciones.</p>
+        ${addBtn}
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            ${LAB_MATERIALS.map(m => `
-                <div class="bg-white/70 backdrop-blur-sm rounded-2xl shadow-md border border-slate-100 overflow-hidden hover:shadow-lg transition-shadow">
-                    <div class="h-44 bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
-                        <img src="" alt="${m.name}" class="w-full h-full object-contain p-4 hidden" onerror="this.classList.add('hidden');this.nextElementSibling.classList.remove('hidden')">
-                        <div class="flex flex-col items-center justify-center text-slate-400">
-                            <svg class="w-12 h-12 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                            <span class="text-xs">Agregar foto</span>
-                        </div>
+            ${data.map(m => {
+                const imgHtml = m.image_path ? 
+                    `<img src="${m.image_path}" alt="${m.name}" class="w-full h-full object-contain p-4">` : 
+                    `<div class="flex flex-col items-center justify-center text-slate-400">
+                        <svg class="w-12 h-12 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <span class="text-xs">Agregar foto</span>
+                    </div>`;
+
+                const actionsHtml = state.isLoggedIn ? `
+                    <div class="absolute top-2 right-2 flex gap-1 bg-white/80 backdrop-blur-sm p-1 rounded-xl border border-slate-100 z-10 animate-fade-in">
+                        <button onclick="openConsultaEditModal('materiales', ${m.id})" class="p-1.5 text-slate-600 hover:text-brand-600 hover:bg-slate-100 rounded-lg transition" title="Editar">
+                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                        </button>
+                        <button onclick="deleteConsultaItem('materiales', ${m.id})" class="p-1.5 text-slate-600 hover:text-red-600 hover:bg-slate-100 rounded-lg transition" title="Eliminar">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                ` : '';
+
+                return `
+                <div class="bg-white/70 backdrop-blur-sm rounded-2xl shadow-md border border-slate-100 overflow-hidden hover:shadow-lg transition-shadow relative">
+                    ${actionsHtml}
+                    <div class="h-44 bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center relative">
+                        ${imgHtml}
                     </div>
                     <div class="p-5">
                         <h3 class="font-bold text-slate-800 text-lg">${m.name}</h3>
                         <p class="text-sm text-slate-600 mt-2 leading-relaxed">${m.desc}</p>
                     </div>
                 </div>
-            `).join('')}
+                `;
+            }).join('')}
         </div>
     </div>`;
 }
 
-function ppeSection() {
+function ppeSection(data = []) {
+    const addBtn = state.isLoggedIn ? `
+        <div class="mb-6 flex justify-end">
+            <button onclick="openConsultaAddModal('ppe')" class="px-4 py-2.5 bg-brand-500 hover:bg-brand-600 text-slate-900 font-bold rounded-xl text-sm transition flex items-center gap-1.5 shadow-sm">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                <span>Agregar Equipo</span>
+            </button>
+        </div>
+    ` : '';
+
     return `<div id="consulta-ppe">
         <p class="text-slate-600 mb-6">El equipo de proteccion personal (EPP) es obligatorio en el laboratorio. Cada elemento tiene una funcion especifica.</p>
+        ${addBtn}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-            ${PPE_ITEMS.map(p => `
-                <div class="bg-white/70 backdrop-blur-sm rounded-2xl shadow-md border border-slate-100 overflow-hidden hover:shadow-lg transition-shadow">
+            ${data.map(p => {
+                const imgHtml = p.image_path ? 
+                    `<img src="${p.image_path}" alt="${p.title}" class="w-full h-full object-contain">` : 
+                    `<svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>`;
+
+                const actionsHtml = state.isLoggedIn ? `
+                    <div class="absolute top-2 right-2 flex gap-1 bg-white/80 backdrop-blur-sm p-1 rounded-xl border border-slate-100 z-10 animate-fade-in">
+                        <button onclick="openConsultaEditModal('ppe', ${p.id})" class="p-1.5 text-slate-600 hover:text-brand-600 hover:bg-slate-100 rounded-lg transition" title="Editar">
+                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                        </button>
+                        <button onclick="deleteConsultaItem('ppe', ${p.id})" class="p-1.5 text-slate-600 hover:text-red-600 hover:bg-slate-100 rounded-lg transition" title="Eliminar">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                ` : '';
+
+                return `
+                <div class="bg-white/70 backdrop-blur-sm rounded-2xl shadow-md border border-slate-100 overflow-hidden hover:shadow-lg transition-shadow relative">
+                    ${actionsHtml}
                     <div class="flex items-center gap-4 p-5 border-b border-slate-100">
                         <div class="w-16 h-16 rounded-xl bg-slate-100 flex items-center justify-center shrink-0 overflow-hidden">
-                            <img src="" alt="${p.title}" class="w-full h-full object-contain hidden" onerror="this.classList.add('hidden');this.nextElementSibling.classList.remove('hidden')">
-                            <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            ${imgHtml}
                         </div>
                         <h3 class="font-bold text-slate-800 text-lg">${p.title}</h3>
                     </div>
                     <div class="p-5 space-y-3 text-sm text-slate-600">
                         <div><span class="font-semibold text-slate-700">Proposito:</span> ${p.purpose}</div>
-                        <div><span class="font-semibold text-slate-700">Cuando usarlo:</span> ${p.when}</div>
+                        <div><span class="font-semibold text-slate-700">Cuando usarlo:</span> ${p.when_use}</div>
                         <div><span class="font-semibold text-slate-700">Limitaciones:</span> ${p.limits}</div>
                     </div>
                 </div>
-            `).join('')}
+                `;
+            }).join('')}
         </div>
     </div>`;
 }
 
-function compatibilitySection() {
+function compatibilitySection(data = []) {
     const severityBadge = (s) => {
-        if (s === 'critica') return '<span class="text-xs font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700">Critica</span>';
+        if (s === 'critica' || s === 'crítica') return '<span class="text-xs font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700">Crítica</span>';
         if (s === 'alta') return '<span class="text-xs font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">Alta</span>';
         return '<span class="text-xs font-bold px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">Media</span>';
     };
+
+    const addBtn = state.isLoggedIn ? `
+        <div class="mb-6 flex justify-end">
+            <button onclick="openConsultaAddModal('compatibilidad')" class="px-4 py-2.5 bg-brand-500 hover:bg-brand-600 text-slate-900 font-bold rounded-xl text-sm transition flex items-center gap-1.5 shadow-sm">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                <span>Agregar Regla</span>
+            </button>
+        </div>
+    ` : '';
+
     return `<div id="consulta-compatibilidad">
         <p class="text-slate-600 mb-6">Almacenar sustancias incompatibles juntas puede provocar reacciones peligrosas. Consulta esta tabla antes de guardar productos quimicos.</p>
+        ${addBtn}
         <div class="bg-white/70 backdrop-blur-sm rounded-2xl shadow-md border border-slate-100 overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
@@ -256,17 +387,32 @@ function compatibilitySection() {
                             <th class="text-left px-5 py-3 font-semibold">Grupo 2</th>
                             <th class="text-left px-5 py-3 font-semibold">Riesgo</th>
                             <th class="text-center px-5 py-3 font-semibold w-20">Severidad</th>
+                            ${state.isLoggedIn ? '<th class="text-center px-5 py-3 font-semibold w-24">Acciones</th>' : ''}
                         </tr>
                     </thead>
                     <tbody>
-                        ${COMPATIBILITY.map((c, i) => `
+                        ${data.map((c, i) => {
+                            const actionsHtml = state.isLoggedIn ? `
+                                <td class="px-5 py-3 text-center flex justify-center gap-1">
+                                    <button onclick="openConsultaEditModal('compatibilidad', ${c.id})" class="p-1 text-slate-600 hover:text-brand-600 hover:bg-slate-100 rounded-lg transition" title="Editar">
+                                        <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                    </button>
+                                    <button onclick="deleteConsultaItem('compatibilidad', ${c.id})" class="p-1 text-slate-600 hover:text-red-600 hover:bg-slate-100 rounded-lg transition" title="Eliminar">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </td>
+                            ` : '';
+
+                            return `
                             <tr class="${i % 2 === 0 ? 'bg-white' : 'bg-slate-50'} border-b border-slate-100">
                                 <td class="px-5 py-3 font-medium text-slate-800">${c.group1}</td>
                                 <td class="px-5 py-3 text-slate-600"><span class="text-red-400 font-bold mx-1">X</span> ${c.group2}</td>
                                 <td class="px-5 py-3 text-slate-600">${c.risk}</td>
                                 <td class="px-5 py-3 text-center">${severityBadge(c.severity)}</td>
+                                ${actionsHtml}
                             </tr>
-                        `).join('')}
+                            `;
+                        }).join('')}
                     </tbody>
                 </table>
             </div>
@@ -274,20 +420,52 @@ function compatibilitySection() {
     </div>`;
 }
 
-function firstAidSection() {
+function firstAidSection(data = []) {
+    const addBtn = state.isLoggedIn ? `
+        <div class="mb-6 flex justify-end">
+            <button onclick="openConsultaAddModal('primeros')" class="px-4 py-2.5 bg-brand-500 hover:bg-brand-600 text-slate-900 font-bold rounded-xl text-sm transition flex items-center gap-1.5 shadow-sm">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                <span>Agregar Primer Auxilio</span>
+            </button>
+        </div>
+    ` : '';
+
     return `<div id="consulta-primeros">
         <p class="text-slate-600 mb-6">En caso de accidente en el laboratorio, sigue estos pasos basicos de primeros auxilios mientras llega la atencion medica.</p>
+        ${addBtn}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-            ${FIRST_AID.map(fa => `
-                <div class="bg-white/70 backdrop-blur-sm rounded-2xl shadow-md border border-slate-100 overflow-hidden">
-                    <div class="bg-red-50 px-5 py-3 border-b border-red-100">
+            ${data.map(fa => {
+                const actionsHtml = state.isLoggedIn ? `
+                    <div class="absolute top-2 right-2 flex gap-1 bg-white/80 backdrop-blur-sm p-1 rounded-xl border border-slate-100 z-10 animate-fade-in">
+                        <button onclick="openConsultaEditModal('primeros', ${fa.id})" class="p-1.5 text-slate-600 hover:text-brand-600 hover:bg-slate-100 rounded-lg transition" title="Editar">
+                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                        </button>
+                        <button onclick="deleteConsultaItem('primeros', ${fa.id})" class="p-1.5 text-slate-600 hover:text-red-600 hover:bg-slate-100 rounded-lg transition" title="Eliminar">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                ` : '';
+
+                const imgHtml = fa.image_path ? `
+                    <div class="px-5 pt-3">
+                        <div class="w-full h-44 bg-slate-100 rounded-xl overflow-hidden border border-slate-100 flex items-center justify-center">
+                            <img src="${fa.image_path}" class="w-full h-full object-cover">
+                        </div>
+                    </div>
+                ` : '';
+
+                return `
+                <div class="bg-white/70 backdrop-blur-sm rounded-2xl shadow-md border border-slate-100 overflow-hidden relative">
+                    ${actionsHtml}
+                    <div class="bg-red-50 px-5 py-3 border-b border-red-100 pr-20">
                         <h3 class="font-bold text-slate-800 flex items-center gap-2">
                             <i data-lucide="alert-triangle" class="w-5 h-5 text-red-500"></i>
                             ${fa.title}
                         </h3>
                     </div>
+                    ${imgHtml}
                     <ol class="p-5 space-y-2">
-                        ${fa.steps.map((s, si) => `
+                        ${(fa.steps || []).map((s, si) => `
                             <li class="text-sm text-slate-600 flex items-start gap-2">
                                 <span class="w-6 h-6 rounded-full bg-brand-100 text-brand-700 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">${si + 1}</span>
                                 <span>${s}</span>
@@ -295,36 +473,77 @@ function firstAidSection() {
                         `).join('')}
                     </ol>
                 </div>
-            `).join('')}
+                `;
+            }).join('')}
         </div>
     </div>`;
 }
 
-function safetySignsSection() {
+function safetySignsSection(data = []) {
+    const addBtn = state.isLoggedIn ? `
+        <div class="mb-6 flex justify-end">
+            <button onclick="openConsultaAddModal('senales')" class="px-4 py-2.5 bg-brand-500 hover:bg-brand-600 text-slate-900 font-bold rounded-xl text-sm transition flex items-center gap-1.5 shadow-sm">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                <span>Agregar Señal</span>
+            </button>
+        </div>
+    ` : '';
+
     return `<div id="consulta-senales">
         <p class="text-slate-600 mb-6">Las senales de seguridad en el laboratorio utilizan colores y simbolos estandarizados para comunicar riesgos y obligaciones.</p>
+        ${addBtn}
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            ${SAFETY_SIGNS.map(s => `
-                <div class="bg-white/60 backdrop-blur-sm rounded-xl border border-slate-100 p-4 text-center hover:shadow-md transition-shadow">
+            ${data.map(s => {
+                const imgHtml = s.image_path ? 
+                    `<img src="${s.image_path}" alt="${s.label}" class="w-full h-full object-contain">` : 
+                    `<svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>`;
+
+                const actionsHtml = state.isLoggedIn ? `
+                    <div class="absolute top-2 right-2 flex gap-1 bg-white/80 backdrop-blur-sm p-1 rounded-xl border border-slate-100 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onclick="openConsultaEditModal('senales', ${s.id})" class="p-1 text-slate-600 hover:text-brand-600 hover:bg-slate-100 rounded-lg transition" title="Editar">
+                            <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                        </button>
+                        <button onclick="deleteConsultaItem('senales', ${s.id})" class="p-1 text-slate-600 hover:text-red-600 hover:bg-slate-100 rounded-lg transition" title="Eliminar">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                ` : '';
+
+                return `
+                <div class="bg-white/60 backdrop-blur-sm rounded-xl border border-slate-100 p-4 text-center hover:shadow-md transition-shadow relative group">
+                    ${actionsHtml}
                     <div class="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3 overflow-hidden">
-                        <img src="" alt="${s.label}" class="w-full h-full object-contain hidden" onerror="this.classList.add('hidden');this.nextElementSibling.classList.remove('hidden')">
-                        <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        ${imgHtml}
                     </div>
                     <p class="text-sm font-bold text-slate-800">${s.label}</p>
                     <p class="text-xs text-slate-500 mt-1">${s.desc}</p>
                 </div>
-            `).join('')}
+                `;
+            }).join('')}
         </div>
     </div>`;
 }
 
-function glossarySection() {
-    const sorted = [...GLOSSARY].sort((a, b) => a.term.localeCompare(b.term));
-    const first = sorted[0];
+function glossarySection(data = []) {
+    const sorted = [...data].sort((a, b) => a.term.localeCompare(b.term));
+    const first = sorted[0] || { term: 'Glosario vacío', def: 'Agrega términos usando el botón.', id: null };
+    
+    window.CURRENT_GLOSSARY = sorted;
+
+    const addBtn = state.isLoggedIn ? `
+        <div class="mb-4 flex justify-end">
+            <button onclick="openConsultaAddModal('glosario')" class="px-3.5 py-1.5 bg-brand-500 hover:bg-brand-600 text-slate-900 font-bold rounded-xl text-xs transition flex items-center gap-1 shadow-sm">
+                <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+                <span>Nuevo Término</span>
+            </button>
+        </div>
+    ` : '';
+
     return `<div id="consulta-glosario">
         <p class="text-slate-600 mb-6">Selecciona un termino para ver su definicion.</p>
         <div class="flex flex-col md:flex-row gap-4">
             <div class="w-full md:w-64 shrink-0">
+                ${addBtn}
                 <input type="text" id="glossary-search" placeholder="Buscar termino..." class="w-full mb-3 px-3 py-2 rounded-xl border border-slate-200 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none" oninput="filterGlossary()">
                 <div id="glossary-terms" class="space-y-1 max-h-96 overflow-y-auto pr-1">
                     ${sorted.map(g => `
@@ -337,9 +556,24 @@ function glossarySection() {
                 </div>
             </div>
             <div class="flex-1" id="glossary-detail">
-                <div class="bg-white/60 backdrop-blur-sm rounded-xl border border-slate-100 p-6">
+                <div class="bg-white/60 backdrop-blur-sm rounded-xl border border-slate-100 p-6 relative min-h-[180px]">
+                    ${state.isLoggedIn && first.id ? `
+                        <div class="absolute top-4 right-4 flex gap-1 z-10 bg-white/80 p-0.5 rounded-xl border border-slate-100">
+                            <button onclick="openConsultaEditModal('glosario', ${first.id})" class="p-1 text-slate-600 hover:text-brand-600 hover:bg-slate-100 rounded-lg transition" title="Editar">
+                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="deleteConsultaItem('glosario', ${first.id})" class="p-1 text-slate-600 hover:text-red-600 hover:bg-slate-100 rounded-lg transition" title="Eliminar">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    ` : ''}
                     <h3 class="text-xl font-bold text-slate-800 mb-2">${first.term}</h3>
                     <p class="text-sm text-slate-600 leading-relaxed">${first.def}</p>
+                    ${first.image_path ? `
+                        <div class="mt-4 max-w-sm rounded-xl overflow-hidden border border-slate-100 bg-slate-50 p-2">
+                            <img src="${first.image_path}" class="w-full h-auto object-cover rounded-lg">
+                        </div>
+                    ` : ''}
                 </div>
             </div>
         </div>
